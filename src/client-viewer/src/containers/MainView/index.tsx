@@ -1,29 +1,28 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Grid } from 'react-flexbox-grid';
 import screenfull from 'screenfull';
 import './index.css';
-import PeerConnection from '../../features/PeerConnection';
-import {
-	VideoQuality,
-	type VideoQualityType,
-} from '../../features/VideoAutoQualityOptimizer/VideoQualityEnum';
 import ErrorDialog from '../../components/ErrorDialog';
 import {
 	ErrorMessage,
 	type ErrorMessageType,
 } from '../../components/ErrorDialog/ErrorMessageEnum';
+import { DUMMY_MY_DEVICE_DETAILS } from '../../constants/appConstants';
 import ConnectionPropmpts from '../../containers/ConnectionPrompts';
 import PlayerView from '../../containers/PlayerView';
-import handleSetVideoQuality from './handleSetVideoQuality';
-import { DUMMY_MY_DEVICE_DETAILS } from '../../constants/appConstants';
-import handleNoConnectionTimeout from './handleNoConnectionTimeout';
-import handleCreatePeerConnection from './handleCreatePeerConnection';
-import handleRemoveDanglingReactRevealContainer from './handleRemoveDanglingReactRevealContainer';
-import handleDisplayingLoadingSharingIconLoop from './handleDisplayingLoadingSharingIconLoop';
+import PeerConnection from '../../features/PeerConnection';
 import { ScreenSharingSource } from '../../features/PeerConnection/ScreenSharingSourceEnum';
+import {
+	VideoQuality,
+	type VideoQualityType,
+} from '../../features/VideoAutoQualityOptimizer/VideoQualityEnum';
 import ConnectionIcon from './ConnectionIconEnum';
+import handleCreatePeerConnection from './handleCreatePeerConnection';
+import handleDisplayingLoadingSharingIconLoop from './handleDisplayingLoadingSharingIconLoop';
+import handleNoConnectionTimeout from './handleNoConnectionTimeout';
+import handleRemoveDanglingReactRevealContainer from './handleRemoveDanglingReactRevealContainer';
+import handleSetVideoQuality from './handleSetVideoQuality';
 import { LoadingSharingIconEnum } from './LoadingSharingIconEnum';
-import { useScreenViewingTracker } from './useScreenViewingTracker';
 
 function MainView() {
 	const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
@@ -109,13 +108,6 @@ function MainView() {
 		}),
 		[promptStep, url],
 	);
-
-	useScreenViewingTracker({
-		streamUrl: url,
-		isPlaying: playing,
-		isErrorDialogOpen,
-		dialogErrorMessage,
-	});
 
 	return (
 		<Grid>
