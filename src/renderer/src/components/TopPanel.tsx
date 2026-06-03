@@ -1,132 +1,20 @@
 import React from 'react';
-import { Button, H3, Icon, Position, Tag, Tooltip } from '@blueprintjs/core';
-import { createStyles, makeStyles } from '@material-ui/core/styles';
-import { Col, Row } from 'react-flexbox-grid';
+import { useTranslation } from 'react-i18next';
 import SettingsOverlay from './SettingsOverlay/SettingsOverlay';
 import ConnectedDevicesListDrawer from './ConnectedDevicesListDrawer';
-import { useTranslation } from 'react-i18next';
 import { IpcEvents } from '../../../common/IpcEvents.enum';
-
-const useStyles = makeStyles(() =>
-	createStyles({
-		topPanelRoot: {
-			display: 'flex',
-			flexDirection: 'column',
-			alignItems: 'center',
-			paddingTop: '15px',
-			marginBottom: '20px',
-			position: 'relative',
-			gap: '12px',
-		},
-		donateButtonRoot: {
-			display: 'flex',
-			justifyContent: 'center',
-			width: '100%',
-			marginTop: '4px',
-		},
-		logoWithAppName: { margin: '0 auto' },
-		appNameHeader: {
-			margin: '0 auto',
-			paddingTop: '5px',
-			fontFamily: 'Lexend Peta',
-			fontSize: '20px',
-			color: '#e2791b',
-			cursor: 'default !important',
-		},
-		donateButton: {
-			borderRadius: '100px',
-			padding: '0',
-			height: '40px',
-			background:
-				'linear-gradient(135deg, hsl(258, 90%, 66%) 0%, hsl(210, 96%, 62%) 30%, hsl(192, 94%, 44%) 70%, hsl(28, 96%, 58%) 100%)',
-			border: 'none',
-			boxShadow:
-				'0 4px 12px rgba(102, 51, 204, 0.4), 0 2px 4px rgba(102, 51, 204, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-			transition: 'all 0.2s ease',
-			'&:hover': {
-				transform: 'translateY(-1px)',
-				boxShadow:
-					'0 6px 16px rgba(102, 51, 204, 0.5), 0 3px 6px rgba(102, 51, 204, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
-			},
-		},
-		donateButtonContent: {
-			display: 'flex',
-			alignItems: 'center',
-			justifyContent: 'center',
-			height: '100%',
-			padding: '0 16px',
-			gap: '8px',
-		},
-		donateButtonIcon: {
-			width: '20px',
-			height: '20px',
-			display: 'block',
-			verticalAlign: 'middle',
-			flexShrink: 0,
-			filter: 'brightness(1.1) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2))',
-		},
-		donateButtonLabel: {
-			display: 'flex',
-			alignItems: 'center',
-			lineHeight: '1',
-			fontSize: '14px',
-			fontWeight: 600,
-			color: '#ffffff',
-			textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
-		},
-		topPanelControlButtonsRoot: {
-			display: 'flex',
-			alignItems: 'center',
-			gap: '12px',
-		},
-		topPanelControlsWrapper: {
-			position: 'absolute',
-			right: '15px',
-			top: '15px',
-			display: 'flex',
-			flexDirection: 'column',
-			alignItems: 'flex-end',
-			gap: '6px',
-		},
-		topPanelControlButton: {
-			width: '40px',
-			height: '40px',
-			borderRadius: '50px',
-			cursor: 'default !important',
-		},
-		topPanelControlButtonMargin: {
-			cursor: 'default !important',
-			position: 'relative',
-		},
-		updateBadge: {
-			borderRadius: '12px',
-			cursor: 'pointer',
-			boxShadow: 'none',
-		},
-		topPanelIconOfControlButton: {
-			cursor: 'default !important',
-		},
-		connectedDevicesBadge: {
-			position: 'absolute',
-			top: '-4px',
-			right: '-4px',
-			backgroundColor: '#ff3b30',
-			color: '#ffffff',
-			borderRadius: '10px',
-			minWidth: '20px',
-			height: '20px',
-			display: 'flex',
-			alignItems: 'center',
-			justifyContent: 'center',
-			fontSize: '12px',
-			fontWeight: 600,
-			padding: '0 6px',
-			boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
-			zIndex: 10,
-			lineHeight: '1',
-		},
-	}),
-);
+import { SettingsContext } from '@renderer/contexts/SettingsContext';
+import Logo192 from '../assets/logo192.png';
+import {
+	DevicesIcon,
+	MoonIcon,
+	ResetIcon,
+	SettingsIcon,
+	SunIcon,
+	TutorialIcon,
+	UpdateArrowIcon,
+} from './icons';
+import styles from './TopPanel.module.css';
 
 interface Props {
 	handleReset: () => void;
@@ -134,7 +22,7 @@ interface Props {
 
 export default function TopPanel({ handleReset }: Props): React.ReactElement {
 	const { t } = useTranslation();
-	const classes = useStyles();
+	const { resolvedTheme, setThemeMode } = React.useContext(SettingsContext);
 
 	const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
 	const [isConnectedDevicesDrawerOpen, setIsConnectedDevicesDrawerOpen] =
@@ -152,16 +40,7 @@ export default function TopPanel({ handleReset }: Props): React.ReactElement {
 	}, []);
 
 	const handleToggleConnectedDevicesListDrawer = React.useCallback(() => {
-		setIsConnectedDevicesDrawerOpen(!isConnectedDevicesDrawerOpen);
-	}, [isConnectedDevicesDrawerOpen]);
-
-	const donateTooltipContent = t('get-deskreen-pro-tooltip');
-
-	const handleDonateButtonClick = React.useCallback(() => {
-		window.electron.ipcRenderer.invoke(
-			IpcEvents.OpenExternalLink,
-			'https://deskreen.com/download',
-		);
+		setIsConnectedDevicesDrawerOpen((open) => !open);
 	}, []);
 
 	const handleTutorialButtonClick = React.useCallback(() => {
@@ -177,6 +56,10 @@ export default function TopPanel({ handleReset }: Props): React.ReactElement {
 			'https://deskreen.com/download',
 		);
 	}, []);
+
+	const handleToggleTheme = React.useCallback(() => {
+		setThemeMode(resolvedTheme === 'dark' ? 'light' : 'dark');
+	}, [resolvedTheme, setThemeMode]);
 
 	React.useEffect(() => {
 		const fetchVersions = async (): Promise<void> => {
@@ -209,15 +92,25 @@ export default function TopPanel({ handleReset }: Props): React.ReactElement {
 			}
 		};
 
-		fetchConnectedDevicesCount();
+		void fetchConnectedDevicesCount();
 
-		const connectedDevicesInterval = setInterval(
-			fetchConnectedDevicesCount,
-			2000,
+		const handleDevicesChanged = (_: unknown, count: unknown): void => {
+			if (typeof count === 'number') {
+				setConnectedDevicesCount(count);
+			} else {
+				void fetchConnectedDevicesCount();
+			}
+		};
+		window.electron.ipcRenderer.on(
+			IpcEvents.DevicesChanged,
+			handleDevicesChanged,
 		);
 
 		return () => {
-			clearInterval(connectedDevicesInterval);
+			window.electron.ipcRenderer.removeListener(
+				IpcEvents.DevicesChanged,
+				handleDevicesChanged,
+			);
 		};
 	}, []);
 
@@ -226,143 +119,24 @@ export default function TopPanel({ handleReset }: Props): React.ReactElement {
 		currentVersion !== '' &&
 		latestVersion !== currentVersion;
 
-	const renderDonateButton = (
-		<Tooltip content={donateTooltipContent} position={Position.BOTTOM}>
-			<Button
-				id="top-panel-donate-button"
-				className={classes.donateButton}
-				onClick={handleDonateButtonClick}
-			>
-				<div className={classes.donateButtonContent}>
-					<Icon
-						className={classes.donateButtonIcon}
-						icon="clean"
-						size={20}
-						color="#D4AF37"
-					/>
-					<span className={classes.donateButtonLabel}>
-						{t('get-deskreen-pro')}
-					</span>
-				</div>
-			</Button>
-		</Tooltip>
-	);
-
-	const renderConnectedDevicesListButton = (
-		<div className={classes.topPanelControlButtonMargin}>
-			<Tooltip content={t('connected-devices')} position={Position.BOTTOM}>
-				<Button
-					id="top-panel-connected-devices-list-button"
-					intent="primary"
-					className={classes.topPanelControlButton}
-					onClick={handleToggleConnectedDevicesListDrawer}
-				>
-					<Icon
-						className={classes.topPanelIconOfControlButton}
-						icon="th-list"
-						size={20}
-					/>
-				</Button>
-			</Tooltip>
-			{connectedDevicesCount > 0 && (
-				<span className={classes.connectedDevicesBadge}>
-					{connectedDevicesCount}
-				</span>
-			)}
-		</div>
-	);
-
-	const renderTutorialButton = (
-		<div className={classes.topPanelControlButtonMargin}>
-			<Tooltip content={t('tutorial')} position={Position.BOTTOM}>
-				<Button
-					id="top-panel-tutorial-button"
-					className={classes.topPanelControlButton}
-					onClick={handleTutorialButtonClick}
-				>
-					<Icon
-						className={classes.topPanelIconOfControlButton}
-						icon="learning"
-						size={22}
-					/>
-				</Button>
-			</Tooltip>
-		</div>
-	);
-
-	const renderHelpButton = (
-		<div className={classes.topPanelControlButtonMargin}>
-			<Tooltip content={t('fix-reset-tooltip')} position={Position.BOTTOM}>
-				<Button
-					id="top-panel-help-button"
-					intent="danger"
-					className={classes.topPanelControlButton}
-					onClick={() => {
-						Promise.resolve(handleReset()).then(() => {
-							window.electron.ipcRenderer.invoke(
-								IpcEvents.CreateWaitingForConnectionSharingSession,
-							);
-						});
-					}}
-				>
-					<Icon
-						className={classes.topPanelIconOfControlButton}
-						icon="lifesaver"
-						size={22}
-					/>
-				</Button>
-			</Tooltip>
-		</div>
-	);
-
-	const renderSettingsButton = (
-		<div className={classes.topPanelControlButtonMargin}>
-			<Tooltip content={t('settings')} position={Position.BOTTOM}>
-				<Button
-					id="top-panel-settings-button"
-					onClick={handleSettingsOpen}
-					className={classes.topPanelControlButton}
-				>
-					<Icon
-						className={classes.topPanelIconOfControlButton}
-						icon="cog"
-						size={22}
-					/>
-				</Button>
-			</Tooltip>
-		</div>
-	);
-
-	const renderLogoWithAppName = (
-		<div
-			id="logo-with-popover-visit-website"
-			className={classes.logoWithAppName}
-		>
-			<H3>Deskreen Community Edition</H3>
-		</div>
-	);
-
 	return (
 		<>
-			<div className={classes.topPanelRoot}>
-				<Row middle="xs" center="xs" style={{ width: '100%' }}>
-					<Col>{renderLogoWithAppName}</Col>
-				</Row>
-				<div className={classes.donateButtonRoot}>{renderDonateButton}</div>
-				<div className={classes.topPanelControlsWrapper}>
-					<div className={classes.topPanelControlButtonsRoot}>
-						{renderConnectedDevicesListButton}
-						{renderHelpButton}
-						{renderTutorialButton}
-						{renderSettingsButton}
+			<div className={styles.root}>
+				<div id="logo-with-popover-visit-website" className={styles.brand}>
+					<img src={Logo192} alt={t('deskreen-logo')} />
+					<div>
+						<div className={`${styles.name} dk-gradient-text`}>Deskreen</div>
+						<div className={styles.tag}>Community Edition</div>
 					</div>
+				</div>
+
+				<div className={styles.right}>
 					{hasUpdate ? (
-						<Tag
-							minimal
-							intent="success"
-							round
-							className={classes.updateBadge}
+						<span
+							className={styles.updatePill}
 							role="button"
+							tabIndex={0}
+							title={t('new-version-available')}
 							onClick={handleOpenDownloadPage}
 							onKeyDown={(event) => {
 								if (event.key === 'Enter' || event.key === ' ') {
@@ -370,30 +144,92 @@ export default function TopPanel({ handleReset }: Props): React.ReactElement {
 									handleOpenDownloadPage();
 								}
 							}}
-							tabIndex={0}
 						>
+							<UpdateArrowIcon />
 							{t('new-version-available')}
-						</Tag>
+						</span>
 					) : null}
+
+					<div className={styles.controls}>
+						<div className={styles.iconBtnWrap}>
+							<button
+								type="button"
+								id="top-panel-connected-devices-list-button"
+								className="dk-iconbtn"
+								title={t('connected-devices')}
+								onClick={handleToggleConnectedDevicesListDrawer}
+							>
+								<DevicesIcon />
+							</button>
+							{connectedDevicesCount > 0 && (
+								<span className={styles.badge}>{connectedDevicesCount}</span>
+							)}
+						</div>
+
+						<button
+							type="button"
+							id="top-panel-help-button"
+							className={`dk-iconbtn ${styles.dangerBtn}`}
+							title={t('fix-reset-tooltip')}
+							onClick={() => {
+								Promise.resolve(handleReset()).then(() => {
+									window.electron.ipcRenderer.invoke(
+										IpcEvents.CreateWaitingForConnectionSharingSession,
+									);
+								});
+							}}
+						>
+							<ResetIcon />
+						</button>
+
+						<button
+							type="button"
+							id="top-panel-tutorial-button"
+							className="dk-iconbtn"
+							title={t('tutorial')}
+							onClick={handleTutorialButtonClick}
+						>
+							<TutorialIcon />
+						</button>
+
+						<span className={styles.divider} />
+
+						<button
+							type="button"
+							id="top-panel-theme-toggle-button"
+							className="dk-iconbtn"
+							title={t('toggle-theme')}
+							onClick={handleToggleTheme}
+						>
+							{resolvedTheme === 'dark' ? <MoonIcon /> : <SunIcon />}
+						</button>
+
+						<button
+							type="button"
+							id="top-panel-settings-button"
+							className="dk-iconbtn"
+							title={t('settings')}
+							onClick={handleSettingsOpen}
+						>
+							<SettingsIcon />
+						</button>
+					</div>
 				</div>
 			</div>
+
 			{isSettingsOpen ? (
 				<SettingsOverlay
 					isSettingsOpen={isSettingsOpen}
 					handleClose={handleSettingsClose}
 				/>
-			) : (
-				<></>
-			)}
+			) : null}
 			{isConnectedDevicesDrawerOpen ? (
 				<ConnectedDevicesListDrawer
 					isOpen={isConnectedDevicesDrawerOpen}
 					handleToggle={handleToggleConnectedDevicesListDrawer}
 					handleReset={handleReset}
 				/>
-			) : (
-				<></>
-			)}
+			) : null}
 		</>
 	);
 }

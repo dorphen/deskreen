@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Text } from '@blueprintjs/core';
-import { Row, Col } from 'react-flexbox-grid';
 import SharingSourcePreviewCard from '../SharingSourcePreviewCard';
 import DeviceInfoCallout from '../DeviceInfoCallout';
 import { Device } from '../../../../common/Device';
 import { IpcEvents } from '../../../../common/IpcEvents.enum';
 import { useTranslation } from 'react-i18next';
+import styles from './ConfirmStep.module.css';
 
 interface ConfirmStepProps {
 	device: Device | null;
@@ -29,14 +29,12 @@ export default function ConfirmStep(props: ConfirmStepProps) {
 	}, []);
 
 	return (
-		<div style={{ width: '80%', marginTop: '50px' }}>
-			<Row style={{ marginBottom: '10px' }}>
-				<Col xs={12} style={{ textAlign: 'center' }}>
-					<Text>{t('check-if-all-is-ok-and-click-confirm')}</Text>
-				</Col>
-			</Row>
-			<Row middle="xs" center="xs">
-				<Col xs={5}>
+		<div className={styles.root}>
+			<div className={styles.title}>
+				<Text>{t('check-if-all-is-ok-and-click-confirm')}</Text>
+			</div>
+			<div className={styles.cols}>
+				<div className={styles.col}>
 					<DeviceInfoCallout
 						deviceType={device?.deviceType}
 						deviceIP={device?.deviceIP}
@@ -44,14 +42,14 @@ export default function ConfirmStep(props: ConfirmStepProps) {
 						deviceBrowser={device?.deviceBrowser}
 						deviceRoomId={device?.deviceRoomId}
 					/>
-				</Col>
-				<Col xs={5}>
+				</div>
+				<div className={styles.col}>
 					<Text>{t('this-screen-source-will-be-seen-by-the-client')}</Text>
 					<SharingSourcePreviewCard
 						sharingSourceID={waitingForConnectionSharingSessionSourceId}
 					/>
-				</Col>
-			</Row>
+				</div>
+			</div>
 		</div>
 	);
 }

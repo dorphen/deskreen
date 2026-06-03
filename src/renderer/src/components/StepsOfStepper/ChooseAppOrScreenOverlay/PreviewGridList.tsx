@@ -1,4 +1,3 @@
-import { Row, Col } from 'react-flexbox-grid';
 import SharingSourcePreviewCard from '../../SharingSourcePreviewCard';
 import { IpcEvents } from '../../../../../common/IpcEvents.enum';
 
@@ -18,16 +17,18 @@ export default function PreviewGridList(props: PreviewGridListProps) {
 	} = props;
 
 	return (
-		<Row
-			center="xs"
-			around="xs"
+		<div
 			style={{
-				height: '90%',
+				display: 'grid',
+				gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+				gap: '16px',
+				padding: '8px',
+				width: '100%',
 			}}
 		>
 			{viewSharingIds.map((id) => {
 				return (
-					<Col xs={12} md={6} key={id}>
+					<div key={id}>
 						<SharingSourcePreviewCard
 							sharingSourceID={id}
 							isChangeAppearanceOnHover
@@ -43,9 +44,9 @@ export default function PreviewGridList(props: PreviewGridListProps) {
 								}
 							}}
 						/>
-					</Col>
+					</div>
 				);
 			})}
-		</Row>
+		</div>
 	);
 }

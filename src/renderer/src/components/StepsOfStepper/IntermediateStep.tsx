@@ -1,12 +1,12 @@
 import React from 'react';
 import { Button, Text } from '@blueprintjs/core';
-import { Col, Row } from 'react-flexbox-grid';
 import { useTranslation } from 'react-i18next';
 import ScanQRStep from './ScanQRStep';
 import ChooseAppOrScreenStep from './ChooseAppOrScreenStep';
 import ConfirmStep from './ConfirmStep';
 import { Device } from '../../../../common/Device';
 import { IpcEvents } from '../../../../common/IpcEvents.enum';
+import styles from './IntermediateStep.module.css';
 
 interface IntermediateStepProps {
 	activeStep: number;
@@ -33,13 +33,11 @@ function getStepContent(
 		case 1:
 			return (
 				<>
-					<Row center="xs">
-						<div style={{ marginBottom: '10px' }}>
-							<Text>
-								{t('choose-entire-screen-or-app-window-you-want-to-share')}
-							</Text>
-						</div>
-					</Row>
+					<div className={styles.instruction}>
+						<Text>
+							{t('choose-entire-screen-or-app-window-you-want-to-share')}
+						</Text>
+					</div>
 					<ChooseAppOrScreenStep
 						handleNextEntireScreen={handleNextEntireScreen}
 						handleNextApplicationWindow={handleNextApplicationWindow}
@@ -75,17 +73,7 @@ export default function IntermediateStep(
 	} = props;
 
 	return (
-		<Col
-			xs={12}
-			style={{
-				display: 'flex',
-				flexDirection: 'column',
-				justifyContent: 'center',
-				alignItems: 'center',
-				height: '260px',
-				width: '100%',
-			}}
-		>
+		<div className={styles.container}>
 			{getStepContent(
 				t,
 				activeStep,
@@ -108,56 +96,46 @@ export default function IntermediateStep(
 			) : (
 				<></>
 			)}
-			{activeStep !== 0 ? (
-				<Row>
-					<Col xs={12}>
-						<Button
-							intent={activeStep === 2 ? 'success' : 'none'}
-							onClick={async () => {
-								if (isConfirmStep(activeStep, steps)) {
-									window.electron.ipcRenderer.invoke(
-										IpcEvents.StartSharingOnWaitingForConnectionSharingSession,
-									);
-									resetPendingConnectionDevice();
-									resetUserAllowedConnection();
-								}
-								setTimeout(() => {
-									handleReset();
-								}, 1000);
-							}}
-							style={{
-								display: activeStep === 1 ? 'none' : 'inline',
-								borderRadius: '100px',
-								width: '300px',
-								textAlign: 'center',
-							}}
-							rightIcon={
-								isConfirmStep(activeStep, steps)
-									? 'small-tick'
-									: 'chevron-right'
+			{activeStep !== 0 && activeStep !== 1 ? (
+				<div className={styles.center}>
+					<Button
+						intent={activeStep === 2 ? 'success' : 'none'}
+						className={styles.cta}
+						onClick={async () => {
+							if (isConfirmStep(activeStep, steps)) {
+								window.electron.ipcRenderer.invoke(
+									IpcEvents.StartSharingOnWaitingForConnectionSharingSession,
+								);
+								resetPendingConnectionDevice();
+								resetUserAllowedConnection();
 							}
-						>
-							{isConfirmStep(activeStep, steps)
-								? t('confirm-button-text')
-								: t('next')}
-						</Button>
-					</Col>
-				</Row>
+							setTimeout(() => {
+								handleReset();
+							}, 1000);
+						}}
+						rightIcon={
+							isConfirmStep(activeStep, steps) ? 'small-tick' : 'chevron-right'
+						}
+					>
+						{isConfirmStep(activeStep, steps)
+							? t('confirm-button-text')
+							: t('next')}
+					</Button>
+				</div>
 			) : (
 				<></>
 			)}
-			<Row style={{ display: activeStep === 2 ? 'inline-block' : 'none' }}>
+			{activeStep === 2 ? (
 				<Button
 					intent="danger"
-					style={{
-						marginTop: '10px',
-						borderRadius: '100px',
-					}}
+					className={styles.backBtn}
 					onClick={handleBack}
 					icon="chevron-left"
 					text={t('no-i-need-to-choose-other')}
 				/>
-			</Row>
-		</Col>
+			) : (
+				<></>
+			)}
+		</div>
 	);
 }

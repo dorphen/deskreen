@@ -1,0 +1,26 @@
+.row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	gap: 16px;
+	padding: 6px 0;
+}
+
+.label {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 16px;
+	font-weight: 700;
+	color: var(--text);
+}
+
+.icon {
+	color: var(--text-muted);
+}
+
+.input {
+	display: flex;
+	align-items: center;
+}

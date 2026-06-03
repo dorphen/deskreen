@@ -9,8 +9,6 @@ import {
 	H4,
 	DrawerSize,
 } from '@blueprintjs/core';
-import { Row, Col } from 'react-flexbox-grid';
-import { createStyles, makeStyles } from '@material-ui/core/styles';
 import CloseOverlayButton from './CloseOverlayButton';
 import DeviceInfoCallout from './DeviceInfoCallout';
 import SharingSourcePreviewCard from './SharingSourcePreviewCard';
@@ -18,6 +16,7 @@ import { Device } from '../../../common/Device';
 import { IpcEvents } from '../../../common/IpcEvents.enum';
 import isProduction from '../../../common/isProduction';
 import { useTranslation } from 'react-i18next';
+import styles from './ConnectedDevicesListDrawer.module.css';
 
 type DeviceWithDesktopCapturerSourceId = Device & {
 	desktopCapturerSourceId: string;
@@ -29,26 +28,9 @@ interface ConnectedDevicesListDrawerProps {
 	handleReset: () => void;
 }
 
-const useStyles = makeStyles(() =>
-	createStyles({
-		drawerRoot: { overflowY: 'scroll', overflowX: 'hidden' },
-		drawerInnerTopPanel: { padding: '20px 10px 0px 30px' },
-		connectedDevicesRoot: { padding: '10px 20px' },
-		topHeader: {
-			marginRight: '20px',
-			fontSize: '20px',
-			fontWeight: 900,
-		},
-		zoomFullWidth: {
-			width: '100%',
-		},
-	}),
-);
-
 export default function ConnectedDevicesListDrawer(
 	props: ConnectedDevicesListDrawerProps,
 ) {
-	const classes = useStyles();
 	const { t } = useTranslation();
 
 	const [isAlertDisconectAllOpen, setIsAlertDisconectAllOpen] = useState(false);
@@ -88,13 +70,17 @@ export default function ConnectedDevicesListDrawer(
 
 		getConnectedDevicesCallback();
 
-		const connectedDevicesInterval = setInterval(
+		// Refresh on push instead of polling on an interval.
+		window.electron.ipcRenderer.on(
+			IpcEvents.DevicesChanged,
 			getConnectedDevicesCallback,
-			4000,
 		);
 
 		return () => {
-			clearInterval(connectedDevicesInterval);
+			window.electron.ipcRenderer.removeListener(
+				IpcEvents.DevicesChanged,
+				getConnectedDevicesCallback,
+			);
 		};
 	}, []);
 
@@ -178,83 +164,73 @@ export default function ConnectedDevicesListDrawer(
 	return (
 		<>
 			<Drawer
-				className={classes.drawerRoot}
+				className={styles.drawerRoot}
 				position={Position.BOTTOM}
 				size={DrawerSize.LARGE}
 				isOpen={props.isOpen}
 				onClose={props.handleToggle}
 				transitionDuration={0}
 			>
-				<Row between="xs" middle="xs" className={classes.drawerInnerTopPanel}>
-					<Col xs={11}>
-						<Row middle="xs">
-							<div className={classes.topHeader}>
-								<Text className="bp3-text-muted">{t('connected-devices')}</Text>
-							</div>
-							<Button
-								intent="danger"
-								disabled={connectedDevices.length === 0}
-								onClick={() => {
-									setIsAlertDisconectAllOpen(true);
-								}}
-								icon="disable"
-								style={{
-									borderRadius: '100px',
-								}}
-							>
-								{t('disconnect-all-devices')}
-							</Button>
-						</Row>
-					</Col>
-					<Col xs={1}>
-						<CloseOverlayButton onClick={props.handleToggle} isDefaultStyles />
-					</Col>
-				</Row>
-				<Row className={classes.connectedDevicesRoot}>
-					<Col xs={12}>
-						<div className={classes.zoomFullWidth}>
-							{connectedDevices.map((device) => {
-								return (
-									<div key={device.id}>
-										<Card className="connected-device-card">
-											<Row middle="xs">
-												<Col xs={6}>
-													<DeviceInfoCallout
-														deviceType={device.deviceType}
-														deviceOS={device.deviceOS}
-														deviceIP={device.deviceIP}
-														deviceBrowser={device.deviceBrowser}
-														deviceRoomId={device.deviceRoomId}
-													/>
-												</Col>
-												<Col xs={6}>
-													<SharingSourcePreviewCard
-														sharingSourceID={device.desktopCapturerSourceId}
-													/>
-												</Col>
-											</Row>
-											<Row center="xs">
-												<Button
-													id={`disconnect-device-${device.deviceIP}`}
-													intent="danger"
-													onClick={(): void => {
-														handleDisconnectAndHideOneDevice(device.id);
-													}}
-													icon="disable"
-													style={{
-														borderRadius: '100px',
-													}}
-												>
-													{t('disconnect')}
-												</Button>
-											</Row>
-										</Card>
+				<div className={styles.topPanel}>
+					<div className={styles.topHeaderGroup}>
+						<span className={styles.topHeader}>{t('connected-devices')}</span>
+						<Button
+							intent="danger"
+							disabled={connectedDevices.length === 0}
+							onClick={() => {
+								setIsAlertDisconectAllOpen(true);
+							}}
+							icon="disable"
+							style={{
+								borderRadius: '100px',
+							}}
+						>
+							{t('disconnect-all-devices')}
+						</Button>
+					</div>
+					<CloseOverlayButton onClick={props.handleToggle} isDefaultStyles />
+				</div>
+				<div className={styles.devicesRoot}>
+					{connectedDevices.map((device) => {
+						return (
+							<div key={device.id}>
+								<Card className="connected-device-card">
+									<div className={styles.deviceCardInner}>
+										<div className={styles.deviceCardCol}>
+											<DeviceInfoCallout
+												deviceType={device.deviceType}
+												deviceOS={device.deviceOS}
+												deviceIP={device.deviceIP}
+												deviceBrowser={device.deviceBrowser}
+												deviceRoomId={device.deviceRoomId}
+											/>
+										</div>
+										<div className={styles.deviceCardCol}>
+											<SharingSourcePreviewCard
+												sharingSourceID={device.desktopCapturerSourceId}
+											/>
+										</div>
 									</div>
-								);
-							})}
-						</div>
-					</Col>
-				</Row>
+									<div className={styles.cardActions}>
+										<Button
+											id={`disconnect-device-${device.deviceIP}`}
+											intent="danger"
+											onClick={(): void => {
+												handleDisconnectAndHideOneDevice(device.id);
+											}}
+											icon="disable"
+											style={{
+												borderRadius: '100px',
+											}}
+										>
+											{t('disconnect')}
+										</Button>
+									</div>
+								</Card>
+							</div>
+						);
+					})}
+				</div>
 			</Drawer>
 			<Alert
 				isOpen={isAlertDisconectAllOpen}

@@ -1,0 +1,30 @@
+.dialogRoot {
+	width: 90%;
+	height: 87vh !important;
+	overflow-y: scroll;
+	border-radius: var(--radius-lg);
+}
+
+.headerBar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	width: 100%;
+	padding: 10px 14px;
+	background: var(--app-bg-1);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md);
+}
+.headerActions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.sharePreviewsContainer {
+	top: 60px;
+	position: relative;
+	height: 100%;
+	width: 100%;
+}

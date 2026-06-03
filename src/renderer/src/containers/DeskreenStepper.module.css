@@ -1,0 +1,88 @@
+.stepperWrap {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.stepper {
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	padding: 14px 0 4px;
+}
+
+.step {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	width: 130px;
+	min-height: 96px;
+}
+
+.ring {
+	width: 52px;
+	height: 52px;
+	border-radius: 50%;
+	display: grid;
+	place-items: center;
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	color: var(--text-faint);
+	transition: all 0.25s;
+}
+.ringActive {
+	background: var(--brand-grad);
+	border: none;
+	color: #fff;
+	box-shadow:
+		0 8px 22px -4px rgba(124, 92, 255, 0.55),
+		0 0 0 4px rgba(124, 92, 255, 0.12);
+}
+.ringDone {
+	background: var(--surface-2);
+	border-color: var(--border-strong);
+	color: var(--accent);
+}
+
+.label {
+	font-size: 12.5px;
+	font-weight: 600;
+	color: var(--text-faint);
+	letter-spacing: 0.3px;
+}
+.labelActive {
+	color: var(--text);
+}
+
+.connector {
+	width: 64px;
+	height: 2px;
+	border-radius: 2px;
+	background: var(--border-strong);
+	margin-top: 25px;
+}
+.connectorDone {
+	background: linear-gradient(90deg, var(--accent), rgba(255, 138, 61, 0.35));
+}
+
+.stepContent {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+/* dialogs (no-wifi / language) shared inner layout */
+.dialogInner {
+	padding: 22px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 14px;
+	text-align: center;
+}
+.dialogInner :global(.bp6-spinner) {
+	margin: 4px 0;
+}

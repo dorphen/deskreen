@@ -1,0 +1,166 @@
+.wrap {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 14px;
+	width: 100%;
+	padding: 4px 8px 8px;
+}
+
+.wifiChip {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 7px 14px;
+	border-radius: 999px;
+	background: var(--wifi-bg);
+	border: 1px solid var(--wifi-border);
+	color: var(--wifi-text);
+	font-size: 12.5px;
+	font-weight: 600;
+	text-align: center;
+}
+
+.card {
+	width: 100%;
+	max-width: 600px;
+	display: flex;
+	align-items: center;
+	gap: 26px;
+	padding: 22px 24px;
+}
+
+.qrTile {
+	flex-shrink: 0;
+	width: 176px;
+	height: 176px;
+	background: var(--qr-tile);
+	border-radius: var(--radius-md);
+	padding: 13px;
+	border: none;
+	box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.5);
+	position: relative;
+	cursor: zoom-in;
+	transition: transform 0.2s;
+}
+.qrTile:hover {
+	transform: scale(1.02);
+}
+.qrTile:disabled {
+	cursor: not-allowed;
+	display: grid;
+	place-items: center;
+}
+.qrTile:disabled:hover {
+	transform: none;
+}
+.qrTile svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.right {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+.heading {
+	font-size: 18px;
+	font-weight: 700;
+	margin-bottom: 4px;
+	color: var(--text);
+}
+.sub {
+	font-size: 13px;
+	color: var(--text-muted);
+	line-height: 1.5;
+	margin-bottom: 16px;
+}
+
+.addr {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 7px 7px 7px 16px;
+	border-radius: 999px;
+	background: var(--surface-2);
+	border: 1px solid var(--border-strong);
+	transition: border-color 0.18s;
+}
+.addr:hover {
+	border-color: var(--accent);
+}
+.url {
+	flex: 1;
+	font-size: 13.5px;
+	font-weight: 600;
+	letter-spacing: 0.2px;
+	color: var(--text);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.room {
+	color: var(--accent);
+}
+.copy {
+	flex-shrink: 0;
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 9px 15px;
+	font-size: 13px;
+}
+.copy:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.waiting {
+	margin-top: 14px;
+	display: inline-flex;
+	align-items: center;
+	gap: 9px;
+	font-size: 12.5px;
+	color: var(--text-muted);
+	font-weight: 500;
+}
+.pulse {
+	width: 9px;
+	height: 9px;
+	border-radius: 50%;
+	background: var(--accent);
+	animation: waitPulse 1.8s ease-in-out infinite;
+}
+/* compositor-only animation (opacity/transform) — no repaint */
+@keyframes waitPulse {
+	0%,
+	100% {
+		opacity: 0.35;
+		transform: scale(0.85);
+	}
+	50% {
+		opacity: 1;
+		transform: scale(1.15);
+	}
+}
+
+/* slot-full messaging */
+.slotFull {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	text-align: center;
+	color: var(--text-muted);
+	font-size: 13px;
+	max-width: 420px;
+}
+
+.dialogQRWrapper {
+	background: #fff;
+	padding: 20px;
+	border-radius: 12px;
+}

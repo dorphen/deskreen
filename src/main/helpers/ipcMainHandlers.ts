@@ -5,7 +5,14 @@ import {
 	screen,
 	clipboard,
 	shell,
+	nativeTheme,
 } from 'electron';
+import {
+	DEFAULT_THEME_PREFERENCE,
+	isThemePreference,
+	ResolvedTheme,
+	ThemePreference,
+} from '../../common/ThemePreference';
 import i18n from '../configs/i18next.config';
 import { ConnectedDevicesService } from '../../features/ConnectedDevicesService';
 import SharingSession from '../../features/SharingSessionService/SharingSession';
@@ -23,6 +30,24 @@ import DesktopCapturerSourceType from '../../common/DesktopCapturerSourceType';
 import isLinuxWaylandSession from '../utils/isLinuxWaylandSession';
 
 export const initIpcMainHandlers = (mainWindow: BrowserWindow): void => {
+	const sendToMainWindow = (channel: string, payload?: unknown): void => {
+		const targetWindow = mainWindow?.isDestroyed() ? null : mainWindow;
+		targetWindow?.webContents.send(channel, payload);
+	};
+
+	const pushRoomIdChanged = (): void => {
+		const roomID =
+			getDeskreenGlobal().sharingSessionService
+				.waitingForConnectionSharingSession?.roomID ?? '';
+		sendToMainWindow(IpcEvents.RoomIdChanged, roomID);
+	};
+
+	const pushDevicesChanged = (): void => {
+		const count = getDeskreenGlobal().connectedDevicesService.getDevices()
+			.length;
+		sendToMainWindow(IpcEvents.DevicesChanged, count);
+	};
+
 	ipcMain.on('client-changed-language', async (_, newLangCode) => {
 		i18n.changeLanguage(newLangCode);
 		if (store.has(ElectronStoreKeys.AppLanguage)) {
@@ -160,6 +185,7 @@ export const initIpcMainHandlers = (mainWindow: BrowserWindow): void => {
 					roomID,
 				);
 			waitingSession.setOnDeviceConnectedCallback(onDeviceConnectedCallback);
+			pushRoomIdChanged();
 		} catch (error) {
 			console.error('Failed to create waiting sharing session', error);
 		}
@@ -189,6 +215,7 @@ export const initIpcMainHandlers = (mainWindow: BrowserWindow): void => {
 		}
 		getDeskreenGlobal().sharingSessionService.waitingForConnectionSharingSession =
 			null;
+		pushRoomIdChanged();
 	}
 
 	ipcMain.handle(IpcEvents.ResetWaitingForConnectionSharingSession, () => {
@@ -199,15 +226,10 @@ export const initIpcMainHandlers = (mainWindow: BrowserWindow): void => {
 		getDeskreenGlobal().connectedDevicesService.addAvailabilityListener(
 			(state) => {
 				const isAvailable = state === 'available';
-				const targetWindow = mainWindow?.isDestroyed() ? null : mainWindow;
-				if (targetWindow) {
-					targetWindow.webContents.send(
-						IpcEvents.ViewerConnectionAvailabilityChanged,
-						{
-							isAvailable,
-						},
-					);
-				}
+				sendToMainWindow(IpcEvents.ViewerConnectionAvailabilityChanged, {
+					isAvailable,
+				});
+				pushDevicesChanged();
 				if (isAvailable) {
 					void createWaitingForConnectionSharingSession();
 				}
@@ -489,6 +511,59 @@ export const initIpcMainHandlers = (mainWindow: BrowserWindow): void => {
 
 	ipcMain.handle(IpcEvents.WriteTextToClipboard, (_, text) => {
 		clipboard.writeText(text);
+	});
+
+	// ---------------------------- theme ----------------------------
+	function getThemePreference(): ThemePreference {
+		const stored = store.get(ElectronStoreKeys.Theme);
+		return isThemePreference(stored) ? stored : DEFAULT_THEME_PREFERENCE;
+	}
+
+	function resolvedTheme(): ResolvedTheme {
+		return nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
+	}
+
+	// apply the persisted preference to Electron's native theme on startup
+	nativeTheme.themeSource = getThemePreference();
+
+	ipcMain.handle(IpcEvents.GetThemePreference, () => getThemePreference());
+	ipcMain.handle(IpcEvents.GetResolvedTheme, () => resolvedTheme());
+
+	ipcMain.handle(IpcEvents.SetThemePreference, (_, pref) => {
+		const next = isThemePreference(pref) ? pref : DEFAULT_THEME_PREFERENCE;
+		store.set(ElectronStoreKeys.Theme, next);
+		nativeTheme.themeSource = next;
+		return resolvedTheme();
+	});
+
+	// push resolved theme on OS-level change (only matters in 'system' mode,
+	// but nativeTheme also fires when themeSource is set explicitly)
+	const handleNativeThemeUpdated = (): void => {
+		const targetWindow = mainWindow?.isDestroyed() ? null : mainWindow;
+		targetWindow?.webContents.send(IpcEvents.ThemeChanged, resolvedTheme());
+	};
+	nativeTheme.on('updated', handleNativeThemeUpdated);
+	mainWindow.on('closed', () => {
+		nativeTheme.removeListener('updated', handleNativeThemeUpdated);
+	});
+
+	// ------------------- Wi-Fi / LAN monitor -------------------
+	// Poll in main at a low rate and push only on transition, instead of the
+	// renderer polling every second.
+	let lastWifiConnected: boolean | null = null;
+	const checkWifi = async (): Promise<void> => {
+		const connected = Boolean(await isWifiConnected());
+		if (connected !== lastWifiConnected) {
+			lastWifiConnected = connected;
+			sendToMainWindow(IpcEvents.WifiStatusChanged, connected);
+		}
+	};
+	void checkWifi();
+	const wifiInterval = setInterval(() => {
+		void checkWifi();
+	}, 5000);
+	mainWindow.on('closed', () => {
+		clearInterval(wifiInterval);
 	});
 
 	void createWaitingForConnectionSharingSession();

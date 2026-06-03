@@ -178,5 +178,9 @@
 	"viewing-client-connected-label": "Viewing client connected",
 	"connection-limit-reached-tooltip": "Connection limit reached. Disconnect the current viewing client (or wait for it to disconnect) to connect a new one.",
 	"deskreen-ce-allows-only-one-client-at-same-time": "Deskreen CE allows only one client viewing device connected at the same time.",
-	"this-will-be-available-only-in-pro-version": "More than one devices connection option will be available only in Pro version."
+	"this-will-be-available-only-in-pro-version": "More than one devices connection option will be available only in Pro version.",
+	"toggle-theme": "Toggle light / dark theme",
+	"theme-system": "System",
+	"theme-light": "Light",
+	"theme-dark": "Dark"
 }

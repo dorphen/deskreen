@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Text, Card, Spinner } from '@blueprintjs/core';
-import { Row, Col } from 'react-flexbox-grid';
 import { IpcEvents } from '../../../../common/IpcEvents.enum';
 import { useTranslation } from 'react-i18next';
 
@@ -83,67 +82,68 @@ const SharingSourcePreviewCard: React.FC<SharingSourcePreviewCardProps> = (
 				onMouseOver={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
 			>
-				<Row
-					center="xs"
-					middle="xs"
-					style={{ height: '95%', minWidth: '200px' }}
+				<div
+					style={{
+						height: '95%',
+						minWidth: '200px',
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						textAlign: 'center',
+					}}
 				>
-					<Col xs={12}>
-						{sourceImage !== '' ? (
-							<>
-								<img
-									src={sourceImage}
-									alt=""
-									style={{ height: '143px', maxWidth: '100%' }}
-								/>
-								{appIconSourceImage !== '' ? (
-									<Card
+					{sourceImage !== '' ? (
+						<div>
+							<img
+								src={sourceImage}
+								alt=""
+								style={{ height: '143px', maxWidth: '100%' }}
+							/>
+							{appIconSourceImage !== '' ? (
+								<Card
+									style={{
+										position: 'absolute',
+										width: '40px',
+										height: '40px',
+										transform: 'translate(0px, -45px)',
+										borderRadius: '500px',
+										padding: '0px',
+										margin: '0px',
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+									}}
+									elevation={4}
+								>
+									<img
+										src={appIconSourceImage}
+										alt=""
 										style={{
-											position: 'absolute',
-											width: '40px',
-											height: '40px',
-											transform: 'translate(0px, -45px)',
-											borderRadius: '500px',
-											padding: '0px',
-											margin: '0px',
+											width: '25px',
+											height: '25px',
 										}}
-										elevation={4}
-									>
-										<Row center="xs" middle="xs" style={{ height: '100%' }}>
-											<img
-												src={appIconSourceImage}
-												alt=""
-												style={{
-													width: '25px',
-													height: '25px',
-												}}
-											/>
-										</Row>
-									</Card>
-								) : (
-									<> </>
-								)}
-							</>
-						) : (
-							<Spinner size={60} />
-						)}
-					</Col>
-				</Row>
-				<Row center="xs">
-					<Col
-						xs={12}
-						style={{
-							backgroundColor:
-								isHovered && isChangeAppearanceOnHover
-									? 'rgba(0,0,0,0.8)'
-									: 'rgba(0,0,0,0.45)',
-							color: 'white',
-							textAlign: 'center',
-						}}
-					>
-						<Text ellipsize>{sourceName}</Text>
-					</Col>
-				</Row>
+									/>
+								</Card>
+							) : (
+								<> </>
+							)}
+						</div>
+					) : (
+						<Spinner size={60} />
+					)}
+				</div>
+				<div
+					style={{
+						backgroundColor:
+							isHovered && isChangeAppearanceOnHover
+								? 'rgba(0,0,0,0.8)'
+								: 'rgba(0,0,0,0.45)',
+						color: 'white',
+						textAlign: 'center',
+					}}
+				>
+					<Text ellipsize>{sourceName}</Text>
+				</div>
 			</Card>
 		</div>
 	);

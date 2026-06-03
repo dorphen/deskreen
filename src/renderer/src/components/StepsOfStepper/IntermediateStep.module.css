@@ -1,0 +1,32 @@
+.container {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	min-height: 260px;
+	width: 100%;
+	gap: 12px;
+}
+
+.center {
+	display: flex;
+	justify-content: center;
+	width: 100%;
+}
+
+.instruction {
+	margin-bottom: 10px;
+	text-align: center;
+	color: var(--text-muted);
+}
+
+.cta {
+	border-radius: 100px !important;
+	min-width: 300px;
+	text-align: center;
+}
+
+.backBtn {
+	border-radius: 100px !important;
+	margin-top: 10px;
+}

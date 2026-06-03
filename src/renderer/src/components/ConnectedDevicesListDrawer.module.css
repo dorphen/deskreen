@@ -1,0 +1,45 @@
+.drawerRoot {
+	overflow-y: scroll;
+	overflow-x: hidden;
+}
+
+.topPanel {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 20px 20px 0 30px;
+}
+.topHeaderGroup {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+.topHeader {
+	font-size: 20px;
+	font-weight: 800;
+	color: var(--text);
+}
+
+.devicesRoot {
+	padding: 10px 20px;
+	width: 100%;
+}
+
+.deviceCardInner {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 20px;
+	flex-wrap: wrap;
+}
+.deviceCardCol {
+	flex: 1 1 280px;
+	min-width: 260px;
+	max-width: 360px;
+}
+.cardActions {
+	display: flex;
+	justify-content: center;
+	margin-top: 12px;
+}

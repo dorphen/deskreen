@@ -1,10 +1,4 @@
-// import SuccessStep from '../components/StepsOfStepper/SuccessStep';
 import React, { useState, useCallback, useEffect, ReactNode } from 'react';
-import { makeStyles, createStyles } from '@material-ui/core/styles';
-import Stepper from '@material-ui/core/Stepper';
-import Step from '@material-ui/core/Step';
-import StepLabel from '@material-ui/core/StepLabel';
-import { Row, Col, Grid } from 'react-flexbox-grid';
 import {
 	Button,
 	Dialog,
@@ -14,14 +8,9 @@ import {
 	H5,
 	Icon,
 	Spinner,
-	Text,
 } from '@blueprintjs/core';
 import IntermediateStep from '@renderer/components/StepsOfStepper/IntermediateStep';
-import ColorlibConnector from '@renderer/components/StepperPanel/ColorlibConnector';
 import { Device } from '../../../common/Device';
-import ColorlibStepIcon, {
-	StepIconPropsDeskreen,
-} from '@renderer/components/StepperPanel/ColorlibStepIcon';
 import LanguageSelector from '@renderer/components/LanguageSelector';
 import { getShuffledArrayOfHello } from '@renderer/configs/i18next.config.client';
 import { IpcEvents } from '../../../common/IpcEvents.enum';
@@ -30,24 +19,13 @@ import AllowConnectionForDeviceAlert from '@renderer/components/AllowConnectionF
 import { useTranslation } from 'react-i18next';
 import { TFunction } from 'i18next';
 import { showMessageFromNewToaster } from '@renderer/utils/showMessageFromNewToaster';
-
-const useStyles = makeStyles(() =>
-	createStyles({
-		stepContent: {
-			display: 'flex',
-			flexDirection: 'column',
-			justifyContent: 'center',
-			alignItems: 'center',
-		},
-		stepLabelContent: {
-			marginTop: '10px !important',
-			height: '110px',
-		},
-		stepperComponent: {
-			paddingBottom: '0px',
-		},
-	}),
-);
+import {
+	AppWindowIcon,
+	CheckIcon,
+	ScreenIcon,
+	WifiIcon,
+} from '@renderer/components/icons';
+import styles from './DeskreenStepper.module.css';
 
 function getSteps(t: TFunction): string[] {
 	return [t('connect'), t('select'), t('confirm')];
@@ -76,7 +54,6 @@ const DeskreenStepper = ({
 	setPendingConnectionDevice,
 	handleReset,
 }: Props): ReactNode => {
-	const classes = useStyles();
 	const { t } = useTranslation();
 
 	const [isEntireScreenSelected, setIsEntireScreenSelected] = useState(false);
@@ -114,19 +91,31 @@ const DeskreenStepper = ({
 	}, []);
 
 	useEffect(() => {
-		const wifiCheckInterval = setInterval(async () => {
-			const isConnected = await window.electron.ipcRenderer.invoke(
-				'check-wifi-connection',
-			);
-			if (!isConnected) {
-				setisNoWiFiError(true);
-			} else {
-				setisNoWiFiError(false);
-			}
-		}, 1000);
+		let cancelled = false;
+
+		const applyWifiStatus = (isConnected: boolean): void => {
+			if (cancelled) return;
+			setisNoWiFiError(!isConnected);
+		};
+
+		void window.electron.ipcRenderer
+			.invoke('check-wifi-connection')
+			.then((isConnected) => applyWifiStatus(Boolean(isConnected)));
+
+		const handleWifiChanged = (_: unknown, isConnected: unknown): void => {
+			applyWifiStatus(Boolean(isConnected));
+		};
+		window.electron.ipcRenderer.on(
+			IpcEvents.WifiStatusChanged,
+			handleWifiChanged,
+		);
 
 		return () => {
-			clearInterval(wifiCheckInterval);
+			cancelled = true;
+			window.electron.ipcRenderer.removeListener(
+				IpcEvents.WifiStatusChanged,
+				handleWifiChanged,
+			);
 		};
 	}, []);
 
@@ -172,9 +161,7 @@ const DeskreenStepper = ({
 		setIsAllowDeviceAlertOpen(false);
 		setIsUserAllowedConnection(true);
 		handleNext();
-		await window.electron.ipcRenderer.invoke(
-			IpcEvents.SetDeviceConnectedStatus,
-		);
+		await window.electron.ipcRenderer.invoke(IpcEvents.SetDeviceConnectedStatus);
 	}, [handleNext, setIsAllowDeviceAlertOpen, setIsUserAllowedConnection]);
 
 	useEffect(() => {
@@ -214,165 +201,115 @@ const DeskreenStepper = ({
 			);
 		}, [handleReset, t]);
 
-	const renderIntermediateOrSuccessStepContent = useCallback(() => {
-		return (
-			<div id="intermediate-step-container" style={{ width: '100%' }}>
-				<IntermediateStep
-					activeStep={activeStep}
-					steps={steps}
-					handleBack={handleBack}
-					handleNextEntireScreen={handleNextEntireScreen}
-					handleNextApplicationWindow={handleNextApplicationWindow}
-					resetPendingConnectionDevice={() => setPendingConnectionDevice(null)}
-					resetUserAllowedConnection={() => setIsUserAllowedConnection(false)}
-					connectedDevice={pendingConnectionDevice}
-					handleReset={handleReset}
-				/>
-			</div>
-		);
-	}, [
-		activeStep,
-		steps,
-		handleReset,
-		handleBack,
-		handleNextEntireScreen,
-		handleNextApplicationWindow,
-		pendingConnectionDevice,
-		setIsUserAllowedConnection,
-		setPendingConnectionDevice,
-	]);
+	const getStepIcon = (idx: number): React.FC<{ size?: number }> => {
+		if (idx === 0) return WifiIcon;
+		if (idx === 2) return CheckIcon;
+		// Select step: reflect the chosen source type once picked.
+		if (isApplicationWindowSelected && !isEntireScreenSelected) {
+			return AppWindowIcon;
+		}
+		return ScreenIcon;
+	};
 
-	const renderStepLabelContent = useCallback(
-		(label, idx) => {
-			return (
-				<StepLabel
-					id="step-label-deskreen"
-					className={classes.stepLabelContent}
-					StepIconComponent={ColorlibStepIcon}
-					StepIconProps={
-						{
-							isEntireScreenSelected,
-							isApplicationWindowSelected,
-						} as StepIconPropsDeskreen
-					}
-				>
-					{pendingConnectionDevice && idx === 0 && isUserAllowedConnection ? (
+	const renderStepNode = (label: string, idx: number): ReactNode => {
+		const StepIcon = getStepIcon(idx);
+		const isActive = idx === activeStep;
+		const isDone = idx < activeStep;
+		const ringClass = `${styles.ring} ${
+			isActive ? styles.ringActive : isDone ? styles.ringDone : ''
+		}`;
+		const showConnectedButton =
+			pendingConnectionDevice && idx === 0 && isUserAllowedConnection;
+
+		return (
+			<React.Fragment key={label}>
+				{idx > 0 && (
+					<div
+						className={`${styles.connector} ${
+							idx <= activeStep ? styles.connectorDone : ''
+						}`}
+					/>
+				)}
+				<div className={styles.step}>
+					<div className={ringClass}>
+						<StepIcon size={24} />
+					</div>
+					{showConnectedButton ? (
 						<DeviceConnectedInfoButton
-							device={pendingConnectionDevice}
+							device={pendingConnectionDevice as Device}
 							onDisconnect={handleUserClickedDeviceDisconnectButton}
 						/>
 					) : (
-						<Text className="bp3-text-muted">{label}</Text>
+						<span
+							className={`${styles.label} ${isActive ? styles.labelActive : ''}`}
+						>
+							{label}
+						</span>
 					)}
-				</StepLabel>
-			);
-		},
-		[
-			classes.stepLabelContent,
-			handleUserClickedDeviceDisconnectButton,
-			isApplicationWindowSelected,
-			isEntireScreenSelected,
-			isUserAllowedConnection,
-			pendingConnectionDevice,
-		],
-	);
+				</div>
+			</React.Fragment>
+		);
+	};
 
 	return (
 		<>
-			<>
-				<Row style={{ width: '100%' }}>
-					<Col xs={12}>
-						<Stepper
-							className={classes.stepperComponent}
+			<div className={styles.stepperWrap}>
+				<div className={styles.stepper}>
+					{steps.map((label, idx) => renderStepNode(label, idx))}
+				</div>
+				<div className={styles.stepContent}>
+					<div id="intermediate-step-container" style={{ width: '100%' }}>
+						<IntermediateStep
 							activeStep={activeStep}
-							alternativeLabel
-							style={{ background: 'transparent' }}
-							connector={<ColorlibConnector />}
-						>
-							{steps.map((label, idx) => (
-								<Step key={label}>{renderStepLabelContent(label, idx)}</Step>
-							))}
-						</Stepper>
-					</Col>
-					<Col className={classes.stepContent} xs={12}>
-						{renderIntermediateOrSuccessStepContent()}
-					</Col>
-				</Row>
+							steps={steps}
+							handleBack={handleBack}
+							handleNextEntireScreen={handleNextEntireScreen}
+							handleNextApplicationWindow={handleNextApplicationWindow}
+							resetPendingConnectionDevice={() =>
+								setPendingConnectionDevice(null)
+							}
+							resetUserAllowedConnection={() => setIsUserAllowedConnection(false)}
+							connectedDevice={pendingConnectionDevice}
+							handleReset={handleReset}
+						/>
+					</div>
+				</div>
 				<AllowConnectionForDeviceAlert
 					device={pendingConnectionDevice}
 					isOpen={isAllowDeviceAlertOpen}
 					onCancel={handleCancelAlert}
 					onConfirm={handleConfirmAlert}
 				/>
-			</>
+			</div>
+
 			<Dialog isOpen={isNoWiFiError} autoFocus usePortal>
-				<Grid>
-					<div style={{ padding: '10px' }}>
-						<Row center="xs" style={{ marginTop: '10px' }}>
-							<Icon icon="offline" size={50} color="#8A9BA8" />
-						</Row>
-						<Row center="xs" style={{ marginTop: '10px' }}>
-							<H3>{t('no-wifi-and-lan-connection')}</H3>
-						</Row>
-						<Row center="xs">
-							<H5>{t('deskreen-ce-works-only-with-wifi-and-lan-networks')}</H5>
-						</Row>
-						<Row center="xs">
-							<Spinner size={50} />
-						</Row>
-						<Row center="xs" style={{ marginTop: '10px' }}>
-							<H4>{t('waiting-for-connection')}</H4>
-						</Row>
-					</div>
-				</Grid>
+				<div className={styles.dialogInner}>
+					<Icon icon="offline" size={50} color="#8A9BA8" />
+					<H3>{t('no-wifi-and-lan-connection')}</H3>
+					<H5>{t('deskreen-ce-works-only-with-wifi-and-lan-networks')}</H5>
+					<Spinner size={50} />
+					<H4>{t('waiting-for-connection')}</H4>
+				</div>
 			</Dialog>
+
 			<Dialog isOpen={isSelectLanguageDialogOpen} autoFocus usePortal>
-				<Grid>
-					<div style={{ padding: '10px' }}>
-						<Row center="xs" style={{ marginTop: '10px' }}>
-							<H1>{helloWord}</H1>
-						</Row>
-						<Row>
-							<Col xs>
-								<Row center="xs" style={{ marginTop: '20px' }}>
-									<Icon icon="translate" size={50} color="#8A9BA8" />
-								</Row>
-								<Row center="xs" style={{ marginTop: '20px' }}>
-									<H5>{t('language')}</H5>
-								</Row>
-								<Row center="xs" style={{ marginTop: '10px' }}>
-									<LanguageSelector />
-								</Row>
-							</Col>
-							{/*<Col xs>*/}
-							{/*  <Row center="xs" style={{ marginTop: '20px' }}>*/}
-							{/*    <Icon icon="style" size={50} color="#8A9BA8" />*/}
-							{/*  </Row>*/}
-							{/*  <Row center="xs" style={{ marginTop: '20px' }}>*/}
-							{/*    <H5>{t('color-theme')}</H5>*/}
-							{/*  </Row>*/}
-							{/*  <Row center="xs" style={{ marginTop: '10px' }}>*/}
-							{/*    <ToggleThemeBtnGroup />*/}
-							{/*  </Row>*/}
-							{/*</Col>*/}
-						</Row>
-						<Row center="xs" style={{ marginTop: '20px' }}>
-							<Button
-								minimal
-								rightIcon="chevron-right"
-								onClick={() => {
-									setIsSelectLanguageDialogOpen(false);
-									window.electron.ipcRenderer.invoke(
-										IpcEvents.SetAppStartedOnce,
-									);
-								}}
-								style={{ borderRadius: '50px' }}
-							>
-								{t('continue')}
-							</Button>
-						</Row>
-					</div>
-				</Grid>
+				<div className={styles.dialogInner}>
+					<H1>{helloWord}</H1>
+					<Icon icon="translate" size={50} color="#8A9BA8" />
+					<H5>{t('language')}</H5>
+					<LanguageSelector />
+					<Button
+						minimal
+						rightIcon="chevron-right"
+						onClick={() => {
+							setIsSelectLanguageDialogOpen(false);
+							window.electron.ipcRenderer.invoke(IpcEvents.SetAppStartedOnce);
+						}}
+						style={{ borderRadius: '50px' }}
+					>
+						{t('continue')}
+					</Button>
+				</div>
 			</Dialog>
 		</>
 	);

@@ -31,4 +31,11 @@ export enum IpcEvents {
 	GetPort = 'get-port',
 	OpenExternalLink = 'open-external-link',
 	WriteTextToClipboard = 'write-text-to-clipboard',
+	GetThemePreference = 'get-theme-preference',
+	SetThemePreference = 'set-theme-preference',
+	GetResolvedTheme = 'get-resolved-theme',
+	ThemeChanged = 'theme-changed',
+	RoomIdChanged = 'room-id-changed',
+	WifiStatusChanged = 'wifi-status-changed',
+	DevicesChanged = 'devices-changed',
 }

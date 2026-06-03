@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
 import { Button, H5, Icon, Text } from '@blueprintjs/core';
-import { Row, Col } from 'react-flexbox-grid';
 import { useTranslation } from 'react-i18next';
 
 interface SuccessStepProps {
@@ -39,43 +38,38 @@ const SuccessStep: React.FC<SuccessStepProps> = (props: SuccessStepProps) => {
 	}, []);
 
 	return (
-		<Col
-			xs={8}
-			md={6}
+		<div
 			style={{
 				display: 'flex',
 				flexDirection: 'column',
 				justifyContent: 'center',
+				alignItems: 'center',
+				textAlign: 'center',
+				gap: '6px',
+				maxWidth: '440px',
+				margin: '0 auto',
 			}}
 		>
-			<Row center="xs">
-				<Col xs={12}>
-					<Icon icon="endorsed" size={35} color="#0F9960" />
-					<H5>Done!</H5>
-				</Col>
-			</Row>
-			<Row center="xs">
-				<Col xs={10}>
-					<div style={{ marginBottom: '10px' }}>
-						<Text>Now you can see your screen on other device</Text>
-					</div>
-					<div
-						id="connected-devices-list-text-success"
-						onMouseEnter={handleTextConnectedListMouseEnter}
-						onMouseLeave={handleTextConnectedListMouseLeave}
-						style={{
-							marginBottom: '25px',
-							textDecoration: 'underline dotted',
-						}}
-					>
-						<Text className="">
-							{t(
-								'you-can-manage-connected-devices-by-clicking-connected-devices-button-in-top-panel',
-							)}
-						</Text>
-					</div>
-				</Col>
-			</Row>
+			<Icon icon="endorsed" size={35} color="#0F9960" />
+			<H5 style={{ margin: 0 }}>Done!</H5>
+			<div style={{ marginBottom: '6px' }}>
+				<Text>Now you can see your screen on other device</Text>
+			</div>
+			<div
+				id="connected-devices-list-text-success"
+				onMouseEnter={handleTextConnectedListMouseEnter}
+				onMouseLeave={handleTextConnectedListMouseLeave}
+				style={{
+					marginBottom: '20px',
+					textDecoration: 'underline dotted',
+				}}
+			>
+				<Text>
+					{t(
+						'you-can-manage-connected-devices-by-clicking-connected-devices-button-in-top-panel',
+					)}
+				</Text>
+			</div>
 			<Button
 				intent="primary"
 				onClick={props.handleReset}
@@ -84,7 +78,7 @@ const SuccessStep: React.FC<SuccessStepProps> = (props: SuccessStepProps) => {
 			>
 				{t('connect-new-device')}
 			</Button>
-		</Col>
+		</div>
 	);
 };
 

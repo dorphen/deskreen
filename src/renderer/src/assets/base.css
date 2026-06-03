@@ -70,10 +70,8 @@
  * @NOTE: Prepend a `~` to css file paths that are in your node_modules
  *        See https://github.com/webpack-contrib/sass-loader#imports
  */
-@import "@fortawesome/fontawesome-free/css/all.css";
 @import "normalize.css/normalize.css";
 @import "@blueprintjs/core/lib/css/blueprint.css";
-@import "react-flexbox-grid/dist/react-flexbox-grid.css";
 @import "fontsource-lexend-peta/index.css";
 
 :root {
@@ -90,13 +88,8 @@
 body {
 	position: relative;
 	height: 100vh;
-	font-family:
-		Arial,
-		Helvetica,
-		Helvetica Neue,
-		serif;
 	overflow: hidden;
-	background-color: var(--light-bg-color);
+	/* background, color & font-family are owned by theme.css */
 }
 
 .bp3-alert-footer > button {
@@ -111,45 +104,15 @@ body {
 	height: 0%;
 }
 
-/* UI colors START */
-.bp3-button:not([class*="bp3-intent-"]) {
-	background-color: var(--light-btn-no-intent-color);
-}
-
-.bp3-dialog {
-	background-color: var(--light-bg-color) !important;
-}
-
-.bp3-popover .bp3-popover-arrow-fill {
-	fill: var(--light-bg-color);
-}
-
-.bp3-popover .bp3-popover-content {
-	background-color: var(--light-bg-color);
-	color: black;
-}
-
-.bp3-html-select > select {
-	background-color: var(--light-btn-no-intent-color);
-}
-
-.bp3-drawer {
-	background-color: var(--light-bg-color);
-}
-
-.bp3-card {
-	background-color: var(--light-bg-color);
-}
+/* Blueprint widgets are themed natively via the `bp6-dark` class on <body>
+   (see theme.css). Legacy bp3-* overrides were removed — Blueprint 6 uses the
+   bp6- prefix, so they no longer matched anything. */
 
 /* for really small screen sizes (ex. Raspberry PI display etc. */
 @media screen and (max-height: 419px) {
 	body {
 		overflow-y: scroll;
 	}
-}
-
-.react-toast-notifications__container {
-	overflow: hidden !important;
 }
 
 /* Connected Devices List button pulse START */
@@ -190,22 +153,6 @@ body {
 /* help cursor when text hovered Connected Devices List */
 #connected-devices-list-text-success:hover {
 	cursor: help;
-}
-
-/* react-toast-notifications progress bar more obvious look */
-body > div.react-toast-notifications__container
-	> div
-	> div
-	> div.react-toast-notifications__toast__icon-wrapper
-	> div {
-	background-color: rgba(0, 0, 0, 0.4);
-}
-
-.hide-toaster-progress {
-	height: 5px;
-	width: calc(100% + 87px) !important;
-	bottom: -11px !important;
-	left: -40px !important;
 }
 
 div.class-allow-device-to-connect-alert {
@@ -332,14 +279,6 @@ div.class-allow-device-to-connect-alert > div.bp3-alert-body
 	justify-content: center;
 }
 
-/* TODO: move to appropriate style file in ShareEntireScreenOrAppWindowControlGroup */
-#share-screen-or-app-btn-group > button > span {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	flex-direction: column;
-}
-
 .active-stepper-pulse-icon {
 	transform: scale(1);
 	animation: pulse-black 3s infinite;
@@ -362,14 +301,6 @@ div.class-allow-device-to-connect-alert > div.bp3-alert-body
 	}
 }
 
-/* TODO: move it to DeskreenStepper.css ! */
-#step-label-deskreen > span.MuiStepLabel-labelContainer > span {
-	margin-top: 8px;
-}
-
-#share-screen-or-app-btn-group > button:nth-child(1):hover {
-	border-width: 10px;
-}
 
 .bp3-overlay::-webkit-scrollbar-track {
 	/* -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); */
