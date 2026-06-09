@@ -128,15 +128,15 @@ const ScanQRStep: React.FC = () => {
 	const portString = useMemo(() => {
 		return `:${clientViewerPort}`;
 	}, [clientViewerPort]);
-	const roomPath = useMemo(() => {
-		return roomID !== '' ? `/${roomID}` : '';
-	}, [roomID]);
 	const shareUrl = useMemo(() => {
 		if (!isViewerSlotAvailable) return '';
 		if (LOCAL_LAN_IP === '') return '';
-		if (roomPath === '') return '';
-		return `http://${LOCAL_LAN_IP}${portString}${roomPath}`;
-	}, [LOCAL_LAN_IP, portString, roomPath, isViewerSlotAvailable]);
+		// roomID presence still gates the QR: it means a waiting session exists and
+		// the slot is free. The code itself is no longer part of the URL — viewers
+		// connect at the root and the server routes them to the active room.
+		if (roomID === '') return '';
+		return `http://${LOCAL_LAN_IP}${portString}`;
+	}, [LOCAL_LAN_IP, portString, roomID, isViewerSlotAvailable]);
 	const isQrInteractive = shareUrl !== '';
 
 	const baseUrl = LOCAL_LAN_IP
@@ -209,10 +209,7 @@ const ScanQRStep: React.FC = () => {
 								)}
 							</div>
 							<div className={styles.addr}>
-								<span className={styles.url}>
-									{baseUrl}
-									<span className={styles.room}>{roomPath}</span>
-								</span>
+								<span className={styles.url}>{baseUrl}</span>
 								<button
 									type="button"
 									className={`dk-gradient-btn ${styles.copy}`}

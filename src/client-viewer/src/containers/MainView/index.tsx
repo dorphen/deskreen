@@ -7,7 +7,10 @@ import {
 	ErrorMessage,
 	type ErrorMessageType,
 } from '../../components/ErrorDialog/ErrorMessageEnum';
-import { DUMMY_MY_DEVICE_DETAILS } from '../../constants/appConstants';
+import {
+	DUMMY_MY_DEVICE_DETAILS,
+	ROOT_CODELESS_ROOM_ID,
+} from '../../constants/appConstants';
 import ConnectionPropmpts from '../../containers/ConnectionPrompts';
 import PlayerView from '../../containers/PlayerView';
 import PeerConnection from '../../features/PeerConnection';
@@ -64,8 +67,9 @@ function MainView() {
 			return;
 		}
 
-		const fallbackRoomId = Math.random().toString(36).substring(2, 10);
-		setConnectionRoomId(fallbackRoomId);
+		// Root URL with no code: send the sentinel so the server routes us to the
+		// single active waiting-for-connection room.
+		setConnectionRoomId(ROOT_CODELESS_ROOM_ID);
 	}, []);
 
 	useEffect(handleSetVideoQuality(videoQuality, peer), [videoQuality, peer]);

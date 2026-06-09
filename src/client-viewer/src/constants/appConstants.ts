@@ -1,3 +1,8 @@
+// Sentinel room id sent when the viewer is opened at the root URL with no code.
+// The server resolves it to the single active waiting-for-connection room.
+// Keep in sync with ROOT_CODELESS_ROOM_ID in src/common/config.ts (separate bundle).
+export const ROOT_CODELESS_ROOM_ID = 'root';
+
 export const PLAYER_WRAPPER_ID = 'player-wrapper-id';
 export const VIDEO_QUALITY_TO_DECIMAL = {
 	'25%': 0.25, // Q_25_PERCENT

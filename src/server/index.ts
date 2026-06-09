@@ -13,7 +13,7 @@ import Router from 'koa-router';
 import koaStatic from 'koa-static';
 import koaSend from 'koa-send';
 import detectPort from 'detect-port';
-import config from '../common/config';
+import config, { ROOT_CODELESS_ROOM_ID } from '../common/config';
 import startPollForInactiveRooms from './startPollForInactiveRooms';
 import Logger from '../main/utils/LoggerWithFilePrefix';
 import SocketsIPService from './socketsIPService';
@@ -31,10 +31,20 @@ const getRoomIdHash = (id: string): string => {
 };
 
 const ioHandleOnConnection = (socket): void => {
-	const { roomId } = socket.handshake.query;
+	let { roomId } = socket.handshake.query;
+	if (Array.isArray(roomId)) roomId = roomId[0];
 	const store = getStore();
 
 	setTimeout(async () => {
+		// A viewer that opened the root URL has no code (empty roomId) or sends the
+		// sentinel; route it to the single active waiting-for-connection room. If
+		// there is none, roomId becomes '' and the isRoomIDTaken guard below rejects.
+		if (!roomId || roomId === ROOT_CODELESS_ROOM_ID) {
+			roomId =
+				getDeskreenGlobal().sharingSessionService
+					.waitingForConnectionSharingSession?.roomID ?? '';
+		}
+
 		if (!getDeskreenGlobal().roomIDService.isRoomIDTaken(roomId)) {
 			socket.emit('NOT_ALLOWED');
 			setTimeout(() => {
