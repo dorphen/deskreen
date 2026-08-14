@@ -36,14 +36,44 @@ const copyClientViewerStaticFiles = () => {
 	};
 };
 
+const SIMPLE_PEER_MIN_JS_PATH = 'node_modules/simple-peer/simplepeer.min.js';
+
+// the helper renderer html loads `./assets/simplepeer.min.js`, which only exists
+// in `out/` after a build — serve it from the dev server too so the helper
+// window works when loaded from `ELECTRON_RENDERER_URL`
+const serveSimplePeerMinJsInDev = () => {
+	return {
+		name: 'serve-simple-peer-min-js-in-dev',
+		configureServer(server: {
+			middlewares: {
+				use: (
+					path: string,
+					handler: (
+						req: unknown,
+						res: {
+							setHeader: (key: string, value: string) => void;
+							end: (body: string) => void;
+						},
+						next: () => void,
+					) => void,
+				) => void;
+			};
+		}) {
+			server.middlewares.use('/assets/simplepeer.min.js', (_req, res) => {
+				res.setHeader('Content-Type', 'text/javascript');
+				res.end(
+					fs.readFileSync(resolve(__dirname, SIMPLE_PEER_MIN_JS_PATH), 'utf-8'),
+				);
+			});
+		},
+	};
+};
+
 const copySimplePeerMinJsStaticFiles = () => {
 	return {
 		name: 'copy-simple-peer-min-js-static-files',
 		async writeBundle() {
-			const sourceFile = resolve(
-				__dirname,
-				'node_modules/simple-peer/simplepeer.min.js',
-			);
+			const sourceFile = resolve(__dirname, SIMPLE_PEER_MIN_JS_PATH);
 			const destDir = resolve(__dirname, 'out/renderer/assets');
 
 			console.log(`Attempting to copy simple-peer.min.js from: ${sourceFile}`);
@@ -81,6 +111,13 @@ export default defineConfig({
 		plugins: [externalizeDepsPlugin(), bytecodePlugin()],
 	},
 	renderer: {
+		// electron-vite only injects `process.env` into the renderer at build
+		// time; the dev server serves these modules untouched, so guards like
+		// `process.env.RUN_MODE` throw `ReferenceError: process is not defined`
+		// (the helper renderer has no node globals in module scope)
+		define: {
+			'process.env.RUN_MODE': JSON.stringify(process.env.RUN_MODE ?? ''),
+		},
 		build: {
 			rollupOptions: {
 				input: {
@@ -102,6 +139,7 @@ export default defineConfig({
 			react(),
 			copyClientViewerStaticFiles(),
 			copySimplePeerMinJsStaticFiles(),
+			serveSimplePeerMinJsInDev(),
 		],
 	},
 });

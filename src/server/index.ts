@@ -146,10 +146,20 @@ class DeskreenSignalingServer {
 		const protocol = http;
 
 		this.server = protocol.createServer(this.app.callback());
+
+		// in dev the peer connection helper renderer is served by the vite dev
+		// server, so its socket.io handshake to this port is cross-origin and
+		// needs an explicit allowance. unset in production, where the helper is
+		// a file:// page and the viewer is same-origin.
+		const devRendererOrigin = process.env['ELECTRON_RENDERER_URL'];
+
 		const io = new Server(this.server, {
 			pingInterval: 20000,
 			pingTimeout: 5000,
 			serveClient: false,
+			...(devRendererOrigin
+				? { cors: { origin: devRendererOrigin, credentials: true } }
+				: {}),
 		});
 
 		io.sockets.on('connection', (socket) => {

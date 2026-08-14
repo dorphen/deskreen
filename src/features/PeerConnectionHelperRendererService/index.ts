@@ -42,9 +42,43 @@ export default class RendererWebrtcHelpersService {
 			},
 		});
 
-		helperRendererWindow.loadURL(
-			`file://${this.appPath}/renderer/peerConnectionHelperRendererWindowIndex.html`,
-		);
+		// in dev, load from the vite dev server like the main window does —
+		// otherwise this window silently runs the last `npm run build` output
+		if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+			helperRendererWindow.loadURL(
+				`${process.env['ELECTRON_RENDERER_URL']}/peerConnectionHelperRendererWindowIndex.html`,
+			);
+		} else {
+			helperRendererWindow.loadURL(
+				`file://${this.appPath}/renderer/peerConnectionHelperRendererWindowIndex.html`,
+			);
+		}
+
+		// this window is hidden in production and has no visible console, so
+		// surface its failures/logs in the main process log while developing
+		if (is.dev) {
+			helperRendererWindow.webContents.on(
+				'console-message',
+				(details: { level?: string; message?: string; lineNumber?: number }) => {
+					console.log(
+						`[helper renderer:${details.level ?? 'info'}] ${details.message ?? ''}`,
+					);
+				},
+			);
+
+			helperRendererWindow.webContents.on(
+				'did-fail-load',
+				(_event, errorCode, errorDescription, validatedURL) => {
+					console.error(
+						`[helper renderer] failed to load ${validatedURL}: ${errorDescription} (${errorCode})`,
+					);
+				},
+			);
+
+			helperRendererWindow.webContents.on('preload-error', (_event, _p, e) => {
+				console.error('[helper renderer] preload error', e);
+			});
+		}
 
 		helperRendererWindow.webContents.on('did-finish-load', () => {
 			if (!helperRendererWindow) {

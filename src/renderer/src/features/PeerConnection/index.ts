@@ -285,13 +285,32 @@ export default class PeerConnection {
 		if (this.isCallStarted) return;
 		this.isCallStarted = true;
 
-		this.signalsDataToCallUser.forEach((data: string) => {
-			this.sendEncryptedMessage({
-				type: 'CALL_USER',
-				payload: {
-					signalData: data,
-				},
-			});
+		// flush whatever the peer signalled before the call was requested; from
+		// now on `handlePeerSignal` forwards new signals (trickle ICE) directly
+		const bufferedSignals = this.signalsDataToCallUser;
+		this.signalsDataToCallUser = [];
+		bufferedSignals.forEach((data: string) => {
+			this.sendCallUserSignal(data);
+		});
+	}
+
+	// `call-peer` can arrive before the peer exists (the source id handler is
+	// async), so signals must be sent as they are produced once the call was
+	// requested, not buffered until a single flush that already happened.
+	handlePeerSignal(data: string): void {
+		if (this.isCallStarted) {
+			this.sendCallUserSignal(data);
+			return;
+		}
+		this.signalsDataToCallUser.push(data);
+	}
+
+	sendCallUserSignal(data: string): void {
+		this.sendEncryptedMessage({
+			type: 'CALL_USER',
+			payload: {
+				signalData: data,
+			},
 		});
 	}
 

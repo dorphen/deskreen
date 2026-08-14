@@ -27,9 +27,9 @@ export default function handleCreatePeer(
 			peerConnection.localStream = null;
 		}
 
-		// clear old signals and reset call state when recreating peer
+		// drop the previous peer's signals; keep `isCallStarted` as is, so a peer
+		// created after the call was requested streams its signals out right away
 		peerConnection.signalsDataToCallUser = [];
-		peerConnection.isCallStarted = false;
 
 		createDesktopCapturerStream(
 			peerConnection,
@@ -55,7 +55,7 @@ export default function handleCreatePeer(
 
 				peerConnection.peer.on('signal', (data: string) => {
 					// fired when simple peer and webrtc done preparation to start call on peerConnection machine
-					peerConnection.signalsDataToCallUser.push(data);
+					peerConnection.handlePeerSignal(data);
 				});
 
 				peerConnection.peer.on('data', (data) => {
