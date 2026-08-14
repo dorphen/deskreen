@@ -33,7 +33,9 @@ export default function PreviewGridList(props: PreviewGridListProps) {
 							sharingSourceID={id}
 							isChangeAppearanceOnHover
 							onClickCard={async () => {
-								window.electron.ipcRenderer.invoke(
+								// The helper may still be creating the peer when `call-peer`
+								// follows; PeerConnection forwards late signals itself.
+								await window.electron.ipcRenderer.invoke(
 									IpcEvents.SetDesktopCapturerSourceId,
 									id,
 								);

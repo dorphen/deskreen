@@ -30,6 +30,7 @@
 	"confirm": "Confirm",
 	"scan-the-qr-code": "Scan the QR code",
 	"make-sure-your-computer-and-screen-viewing-device-are-connected-to-same-wi-fi": "Make sure your computer and screen viewing device are connected to same Wi-Fi",
+	"connected-to-wifi-network": "Connected to Wi-Fi: {{ssid}} — make sure your viewing device is on the same network",
 	"or-type-the-following-address-in-browser-address-bar-on-any-device": "Or type the following address in browser address bar on any device",
 	"someone-is-trying-to-connect-do-you-allow": "Someone is trying to connect, do you allow?",
 	"click-to-make-bigger": "Click to make bigger",

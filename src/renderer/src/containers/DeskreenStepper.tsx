@@ -19,16 +19,11 @@ import AllowConnectionForDeviceAlert from '@renderer/components/AllowConnectionF
 import { useTranslation } from 'react-i18next';
 import { TFunction } from 'i18next';
 import { showMessageFromNewToaster } from '@renderer/utils/showMessageFromNewToaster';
-import {
-	AppWindowIcon,
-	CheckIcon,
-	ScreenIcon,
-	WifiIcon,
-} from '@renderer/components/icons';
+import { ScreenIcon, WifiIcon } from '@renderer/components/icons';
 import styles from './DeskreenStepper.module.css';
 
 function getSteps(t: TFunction): string[] {
-	return [t('connect'), t('select'), t('confirm')];
+	return [t('connect'), t('select')];
 }
 
 interface Props {
@@ -41,6 +36,7 @@ interface Props {
 	pendingConnectionDevice: Device | null;
 	setPendingConnectionDevice: (device: Device | null) => void;
 	handleReset: () => void;
+	handleResetStepperUi: () => void;
 }
 
 const DeskreenStepper = ({
@@ -53,12 +49,10 @@ const DeskreenStepper = ({
 	pendingConnectionDevice,
 	setPendingConnectionDevice,
 	handleReset,
+	handleResetStepperUi,
 }: Props): ReactNode => {
 	const { t } = useTranslation();
 
-	const [isEntireScreenSelected, setIsEntireScreenSelected] = useState(false);
-	const [isApplicationWindowSelected, setIsApplicationWindowSelected] =
-		useState(false);
 	const [isNoWiFiError, setisNoWiFiError] = useState(false);
 	const [isSelectLanguageDialogOpen, setIsSelectLanguageDialogOpen] =
 		useState(false);
@@ -122,26 +116,26 @@ const DeskreenStepper = ({
 	const steps = getSteps(t);
 
 	const handleNext = useCallback((): void => {
-		if (activeStep === steps.length - 1) {
-			setIsEntireScreenSelected(false);
-			setIsApplicationWindowSelected(false);
-		}
 		setActiveStep((prevActiveStep: number): number => prevActiveStep + 1);
-	}, [activeStep, setActiveStep, steps]);
-
-	const handleNextEntireScreen = useCallback((): void => {
-		setActiveStep((prevActiveStep: number): number => prevActiveStep + 1);
-		setIsEntireScreenSelected(true);
 	}, [setActiveStep]);
 
-	const handleNextApplicationWindow = useCallback((): void => {
-		setActiveStep((prevActiveStep: number): number => prevActiveStep + 1);
-		setIsApplicationWindowSelected(true);
-	}, [setActiveStep]);
-
-	const handleBack = useCallback((): void => {
-		setActiveStep((prevActiveStep: number) => prevActiveStep - 1);
-	}, [setActiveStep]);
+	// Selecting a source now starts sharing immediately (there is no longer a
+	// separate confirm step). This mirrors what the old confirm button did.
+	const handleStartSharing = useCallback((): void => {
+		window.electron.ipcRenderer.invoke(
+			IpcEvents.StartSharingOnWaitingForConnectionSharingSession,
+		);
+		setPendingConnectionDevice(null);
+		setIsUserAllowedConnection(false);
+		// only rewind the stepper — the session we just started must stay alive
+		setTimeout(() => {
+			handleResetStepperUi();
+		}, 1000);
+	}, [
+		handleResetStepperUi,
+		setPendingConnectionDevice,
+		setIsUserAllowedConnection,
+	]);
 
 	const handleCancelAlert = async (): Promise<void> => {
 		setIsAllowDeviceAlertOpen(false);
@@ -203,11 +197,6 @@ const DeskreenStepper = ({
 
 	const getStepIcon = (idx: number): React.FC<{ size?: number }> => {
 		if (idx === 0) return WifiIcon;
-		if (idx === 2) return CheckIcon;
-		// Select step: reflect the chosen source type once picked.
-		if (isApplicationWindowSelected && !isEntireScreenSelected) {
-			return AppWindowIcon;
-		}
 		return ScreenIcon;
 	};
 
@@ -261,16 +250,8 @@ const DeskreenStepper = ({
 					<div id="intermediate-step-container" style={{ width: '100%' }}>
 						<IntermediateStep
 							activeStep={activeStep}
-							steps={steps}
-							handleBack={handleBack}
-							handleNextEntireScreen={handleNextEntireScreen}
-							handleNextApplicationWindow={handleNextApplicationWindow}
-							resetPendingConnectionDevice={() =>
-								setPendingConnectionDevice(null)
-							}
-							resetUserAllowedConnection={() => setIsUserAllowedConnection(false)}
-							connectedDevice={pendingConnectionDevice}
-							handleReset={handleReset}
+							handleNextEntireScreen={handleStartSharing}
+							handleNextApplicationWindow={handleStartSharing}
 						/>
 					</div>
 				</div>

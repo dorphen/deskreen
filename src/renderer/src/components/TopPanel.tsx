@@ -172,11 +172,8 @@ export default function TopPanel({ handleReset }: Props): React.ReactElement {
 							className={`dk-iconbtn ${styles.dangerBtn}`}
 							title={t('fix-reset-tooltip')}
 							onClick={() => {
-								Promise.resolve(handleReset()).then(() => {
-									window.electron.ipcRenderer.invoke(
-										IpcEvents.CreateWaitingForConnectionSharingSession,
-									);
-								});
+								// handleReset already recreates the waiting session
+								void Promise.resolve(handleReset());
 							}}
 						>
 							<ResetIcon />

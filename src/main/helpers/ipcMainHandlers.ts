@@ -22,6 +22,7 @@ import { onDeviceConnectedCallback } from '../../server/onDeviceConnectedCallbac
 import SharingSessionStatusEnum from '../../features/SharingSessionService/SharingSessionStatusEnum';
 import getMyLocalIpV4 from './getMyLocalIpV4';
 import isWifiConnected from './isWifiConnected';
+import getWifiSsid from './getWifiSsid';
 import { getDeskreenGlobal } from './getDeskreenGlobal';
 import { IpcEvents } from '../../common/IpcEvents.enum';
 import { ElectronStoreKeys } from '../../common/ElectronStoreKeys.enum';
@@ -155,6 +156,10 @@ export const initIpcMainHandlers = (mainWindow: BrowserWindow): void => {
 		return isWifiConnected();
 	});
 
+	ipcMain.handle('get-wifi-ssid', async () => {
+		return getWifiSsid();
+	});
+
 	ipcMain.handle(IpcEvents.GetPort, () => {
 		return signalingServer.port;
 	});
@@ -198,23 +203,38 @@ export const initIpcMainHandlers = (mainWindow: BrowserWindow): void => {
 		},
 	);
 
-	function resetWaitingForConnectionSharingSession(): void {
-		const sharingSession =
-			getDeskreenGlobal().sharingSessionService
-				.waitingForConnectionSharingSession;
-		const roomID = sharingSession?.roomID;
-		sharingSession?.denyConnectionForPartner();
-		sharingSession?.disconnectByHostMachineUser();
-		sharingSession?.destroy();
-		sharingSession?.setStatus(SharingSessionStatusEnum.NOT_CONNECTED);
-		getDeskreenGlobal().sharingSessionService.sharingSessions.delete(
-			sharingSession?.id as string,
-		);
-		if (roomID) {
-			getDeskreenGlobal().roomIDService.unmarkRoomIDAsTaken(roomID);
+	function tearDownSharingSession(sharingSession: SharingSession): void {
+		const { sharingSessionService, roomIDService } = getDeskreenGlobal();
+		sharingSession.denyConnectionForPartner();
+		sharingSession.disconnectByHostMachineUser();
+		sharingSession.setStatus(SharingSessionStatusEnum.DESTROYED);
+		sharingSession.destroy();
+		sharingSessionService.sharingSessions.delete(sharingSession.id);
+		if (sharingSession.roomID) {
+			roomIDService.unmarkRoomIDAsTaken(sharingSession.roomID);
 		}
-		getDeskreenGlobal().sharingSessionService.waitingForConnectionSharingSession =
-			null;
+	}
+
+	// Full restart: tears down every sharing session, including one that already
+	// has a viewer connected, and frees the single viewer slot. Dropping only the
+	// waiting session is not enough — while the slot stays occupied, creating the
+	// next waiting session rejects with 'unable to create waiting session while a
+	// device is connected' and the reset button appears to do nothing.
+	function resetWaitingForConnectionSharingSession(): void {
+		const { sharingSessionService, connectedDevicesService } =
+			getDeskreenGlobal();
+
+		[...sharingSessionService.sharingSessions.values()].forEach(
+			tearDownSharingSession,
+		);
+		sharingSessionService.sharingSessions.clear();
+		sharingSessionService.waitingForConnectionSharingSession = null;
+
+		connectedDevicesService.resetPendingConnectionDevice();
+		// notifies the availability listeners, which push the new device count and
+		// kick off a fresh waiting session
+		connectedDevicesService.disconnectAllDevices();
+
 		pushRoomIdChanged();
 	}
 

@@ -135,6 +135,10 @@ export default class SharingSessionService {
 
 	waitWhileUserIsNotCreated(): Promise<undefined> {
 		return new Promise((resolve) => {
+			if (this.user !== null) {
+				resolve(undefined);
+				return;
+			}
 			const currentInterval = setInterval(() => {
 				if (this.user !== null) {
 					resolve(undefined);

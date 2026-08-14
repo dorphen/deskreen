@@ -13,12 +13,18 @@ export default function HomePage(): React.ReactElement {
 	const [pendingConnectionDevice, setPendingConnectionDevice] =
 		useState<Device | null>(null);
 
+	// UI-only reset — leaves an ongoing sharing session alone.
+	const handleResetStepperUi = useCallback((): void => {
+		setActiveStep(0);
+		setPendingConnectionDevice(null);
+		setIsUserAllowedConnection(false);
+		setIsAllowDeviceAlertOpen(false);
+	}, []);
+
+	// Full restart — also drops a connected viewer and starts a fresh session.
 	const handleResetWithSharingSessionRestart =
 		useCallback(async (): Promise<void> => {
-			setActiveStep(0);
-			setPendingConnectionDevice(null);
-			setIsUserAllowedConnection(false);
-			setIsAllowDeviceAlertOpen(false);
+			handleResetStepperUi();
 
 			await window.electron.ipcRenderer.invoke(
 				IpcEvents.ResetWaitingForConnectionSharingSession,
@@ -26,7 +32,7 @@ export default function HomePage(): React.ReactElement {
 			await window.electron.ipcRenderer.invoke(
 				IpcEvents.CreateWaitingForConnectionSharingSession,
 			);
-		}, []);
+		}, [handleResetStepperUi]);
 
 	return (
 		<div className={Classes.TREE}>
@@ -41,6 +47,7 @@ export default function HomePage(): React.ReactElement {
 				pendingConnectionDevice={pendingConnectionDevice}
 				setPendingConnectionDevice={setPendingConnectionDevice}
 				handleReset={handleResetWithSharingSessionRestart}
+				handleResetStepperUi={handleResetStepperUi}
 			/>
 		</div>
 	);

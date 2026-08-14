@@ -18,6 +18,7 @@ const ScanQRStep: React.FC = () => {
 	const [isViewerSlotAvailable, setIsViewerSlotAvailable] = useState(true);
 	const [roomID, setRoomID] = useState('');
 	const [LOCAL_LAN_IP, setLocalLanIP] = useState('');
+	const [wifiSsid, setWifiSsid] = useState('');
 	const [isQRCodeMagnified, setIsQRCodeMagnified] = useState(false);
 
 	useEffect(() => {
@@ -97,14 +98,22 @@ const ScanQRStep: React.FC = () => {
 			}
 		};
 
+		const fetchWifiSsid = async (): Promise<void> => {
+			const ssid = await window.electron.ipcRenderer.invoke('get-wifi-ssid');
+			if (cancelled) return;
+			setWifiSsid(typeof ssid === 'string' ? ssid : '');
+		};
+
 		void fetchRoomId();
 		void fetchLocalIp();
+		void fetchWifiSsid();
 
 		const handleRoomIdChanged = (): void => {
 			void fetchRoomId();
 		};
 		const handleWifiChanged = (): void => {
 			void fetchLocalIp();
+			void fetchWifiSsid();
 		};
 		window.electron.ipcRenderer.on(IpcEvents.RoomIdChanged, handleRoomIdChanged);
 		window.electron.ipcRenderer.on(
@@ -155,9 +164,11 @@ const ScanQRStep: React.FC = () => {
 		<div className={styles.wrap}>
 			<div className={styles.wifiChip}>
 				<WifiIcon size={15} />
-				{t(
-					'make-sure-your-computer-and-screen-viewing-device-are-connected-to-same-wi-fi',
-				)}
+				{wifiSsid
+					? t('connected-to-wifi-network', { ssid: wifiSsid })
+					: t(
+							'make-sure-your-computer-and-screen-viewing-device-are-connected-to-same-wi-fi',
+						)}
 			</div>
 
 			<div className={`dk-card ${styles.card}`}>
